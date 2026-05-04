@@ -1,75 +1,9 @@
 ss_REG_Language_GEN_0: Python
-ls_MDT_OrbKepResPlot_SRC_0:
-- modules/orbital_plots.py
-ss_REG_OrbKepResPlot_CODE_1: "def plot_kep_elements_and_residuals_three(\n       \
-  \ time: np.ndarray,\n        y_sgp4: np.ndarray,\n        y_int: np.ndarray,\n \
-  \       y_opt: np.ndarray,\n        out_dir: Path,\n):\n    out_dir = Path(out_dir)\n\
-  \    out_dir.mkdir(parents=True, exist_ok=True)\n\n    a_sgp4, e_sgp4, i_sgp4, Om_sgp4,\
-  \ u_sgp4 = _compute_kep(y_sgp4)\n    a_int, e_int, i_int, Om_int, u_int = _compute_kep(y_int)\n\
-  \    a_opt, e_opt, i_opt, Om_opt, u_opt = _compute_kep(y_opt)\n\n    files = []\n\
-  \n    files.append(_plot_kep_residual_single(\n        time, a_sgp4, a_int, a_opt,\n\
-  \        ylabel_main=\"a [km]\", ylabel_diff=r\"$\\Delta a$ [km]\",\n        title=\"\
-  Semi-major axis ($a$)\",\n        filename=out_dir / \"kep_res_a.png\"\n    ))\n\
-  \n    files.append(_plot_kep_residual_single(\n        time, e_sgp4, e_int, e_opt,\n\
-  \        ylabel_main=\"e [-]\", ylabel_diff=r\"$\\Delta e$ [-]\",\n        title=\"\
-  Eccentricity ($e$)\",\n        filename=out_dir / \"kep_res_e.png\"\n    ))\n\n\
-  \    files.append(_plot_kep_residual_single(\n        time, i_sgp4, i_int, i_opt,\n\
-  \        ylabel_main=\"i [deg]\", ylabel_diff=r\"$\\Delta i$ [deg]\",\n        title=\"\
-  Inclination ($i$)\",\n        filename=out_dir / \"kep_res_i.png\"\n    ))\n\n \
-  \   files.append(_plot_kep_residual_single(\n        time, Om_sgp4, Om_int, Om_opt,\n\
-  \        ylabel_main=r\"$\\Omega$ [deg]\", ylabel_diff=r\"$\\Delta \\Omega$ [deg]\"\
-  ,\n        title=r\"RAAN ($\\Omega$)\",\n        filename=out_dir / \"kep_res_RAAN.png\"\
-  \n    ))\n\n    files.append(_plot_kep_residual_single(\n        time, u_sgp4, u_int,\
-  \ u_opt,\n        ylabel_main=\"u [deg]\", ylabel_diff=r\"$\\Delta u$ [deg]\",\n\
-  \        title=\"Argument of Latitude ($u$)\",\n        filename=out_dir / \"kep_res_u.png\"\
-  \n    ))\n\n    return files\n\n\ndef _plot_kep_residual_single(\n        time,\n\
-  \        elem_sgp4,\n        elem_int,\n        elem_opt,\n        ylabel_main,\n\
-  \        ylabel_diff,\n        title,\n        filename,\n):\n    \"\"\"\n    Plots\
-  \ 3 curves + 2 residuals using plots.py style (Blue/Orange/Green).\n    Handles\
-  \ overlaps using linestyles.\n    \"\"\"\n    time = np.asarray(time, dtype=float)\n\
-  \    elem_sgp4 = np.asarray(elem_sgp4, dtype=float)\n    elem_int = np.asarray(elem_int,\
-  \ dtype=float)\n    elem_opt = np.asarray(elem_opt, dtype=float)\n\n    # Residuals\n\
-  \    res_int = elem_int - elem_sgp4\n    res_opt = elem_opt - elem_sgp4\n\n    #\
-  \ Setup Figure\n    max_time = np.nanmax(time) if len(time) > 0 else 0\n    orbital_lines\
-  \ = []\n    if period is not None and max_time > period:\n        orbital_lines\
-  \ = np.arange(period, max_time + 1, period, dtype=float)\n        # Wider figure\
-  \ if vertical lines present\n        fig, ax1 = plt.subplots(figsize=(10 + len(orbital_lines)\
-  \ * 0.5, 8))\n    else:\n        fig, ax1 = plt.subplots(figsize=(10, 8))\n\n  \
-  \  fig.subplots_adjust(top=0.85)\n\n    # --- MAIN CURVES (Left Axis) ---\n    l1,\
-  \ = ax1.plot(time, elem_sgp4, label=\"SGP4\",\n                   color=\"tab:blue\"\
-  , linestyle=\"-\", linewidth=9, alpha=0.9)\n\n    l2, = ax1.plot(time, elem_int,\
-  \ label=\"Integrated\",\n                   color=\"tab:orange\", linestyle=\"-\"\
-  , linewidth=5, alpha=0.9)\n\n    l3, = ax1.plot(time, elem_opt, label=\"Optimised\"\
-  ,\n                   color=\"tab:cyan\", linestyle=\"--\", linewidth=3, alpha=0.8)\n\
-  \n    ax1.set_xlabel(\"Time [s]\", fontsize=LABEL_SIZE)\n    ax1.set_ylabel(ylabel_main,\
-  \ fontsize=LABEL_SIZE)\n    ax1.tick_params(axis=\"both\", labelsize=TICK_SIZE)\n\
-  \    ax1.grid(True, linestyle=\":\", alpha=0.6)\n\n    # Minor ticks\n    ax1.xaxis.set_minor_locator(mticker.AutoMinorLocator())\n\
-  \    ax1.yaxis.set_minor_locator(mticker.AutoMinorLocator())\n\n\n    # --- RESIDUALS\
-  \ (Right Axis) ---\n    ax2 = ax1.twinx()\n\n    l4, = ax2.plot(time, res_int, label=\"\
-  Res: Int - SGP4\",\n                   color=\"tab:orange\", linestyle=\":\", linewidth=1.5,\
-  \ alpha=1)\n\n    l5, = ax2.plot(time, res_opt, label=\"Res: Opt - SGP4\",\n   \
-  \                color=\"tab:green\", linestyle=\":\", linewidth=1.5, alpha=1)\n\
-  \n    ax2.set_ylabel(ylabel_diff, fontsize=LABEL_SIZE)\n    ax2.tick_params(axis=\"\
-  y\", labelsize=TICK_SIZE)\n    ax2.yaxis.set_minor_locator(mticker.AutoMinorLocator())\n\
-  \n    # --- Vertical Lines (Orbital Period) ---\n    if period is not None and len(orbital_lines)\
-  \ > 0:\n        for lx in orbital_lines:\n            ax1.axvline(lx, color='black',\
-  \ linestyle='-.', alpha=0.3, zorder=0)\n            ax1.text(lx, 1.05, f\"{int(lx\
-  \ / period)} T \u2248 {int(lx)} s\",\n                     transform=ax1.get_xaxis_transform(),\n\
-  \                     ha='center', va='bottom', fontsize=12, color='gray')\n\n \
-  \   # --- Legend ---\n    lines = [l1, l2, l3, l4, l5]\n    labels = [l.get_label()\
-  \ for l in lines]\n\n    if period is not None and len(orbital_lines) > 0:\n   \
-  \     lines.append(Line2D([0], [0], color='black', linestyle='-.', alpha=0.3, label='1T\
-  \ = orbital period'))\n        labels.append('1T = orbital period')\n\n    # Legend\
-  \ placement matching plots.py\n    ax1.legend(lines, labels, loc='lower center',\
-  \ bbox_to_anchor=(0.5, 1.08),\n               ncol=3, fontsize=LEGEND_SIZE, frameon=True)\n\
-  \n    ax1.set_title(title, y=1.22, fontsize=TITLE_SIZE)\n\n    fig.tight_layout()\n\
-  \    fig.savefig(filename, dpi=300, bbox_inches=\"tight\")\n    plt.close(fig)\n\
-  \    return str(filename)\n"
 ls_MDT_TLE_GEN_0:
 - GONETS-M 24
 - 1 54151U 22139B   25337.46568562  .00000027  00000+0  12117-3 0  9998
 - 2 54151  82.4961 109.1218 0015671 298.4429  61.5071 12.42859793141330
-sf_MDT_OrbTimeIni_NUM_0: 0.0
+sf_MDT_OrbTimeIni_NUM_0: 0
 sf_MDT_OrbTimeEnd_NUM_0: 17379.27328702313
 sf_MDT_OrbTimeStep_NUM_0: 173.7927328702313
 lf_REG_OrbPosIni_NUM_0:
@@ -88,295 +22,383 @@ lf_REG_OrbVelEnd_NUM_1:
 - 898.2638417212481
 - 241.78479324171806
 - -7049.264748594051
-ss_MDT_Integrator_GEN_0: RK4
-ls_MDT_ForceModelComponents_GEN_0:
-- J2
-sf_REG_EulerTimeTotal_NUM_0.5: 0.006651401519775391
-sf_REG_EulerTimeEff_NUM_0.5: 6.651401519775391e-05
-lf_REG_IntPosIni_NUM_0:
+ls_MDT_Grav_SRC_0:
+- modules/gravity_model.py
+ss_REG_Grav_CODE_1: "def point_mass(r: np.ndarray):\n    mu = pick(\"mu_E\")\n   \
+  \ r_norm = np.linalg.norm(r)\n    r_ddot = - mu * r / r_norm**3\n\n    return r_ddot\n"
+ls_MDT_Euler_SRC_0:
+- modules/integrator.py
+ss_REG_Euler_CODE_1: "def Euler(y_i: np.ndarray, dt: float, tf: float, acc_function:\
+  \ Callable[[np.ndarray], np.ndarray], time=False):\n    \"\"\"\n    Computes position\
+  \ and velocity of the satellite using Euler integrator.\n    acc_function can be\
+  \ a simple gravity model f(r) or a full RHS f(t, y).\n    \"\"\"\n    start = pytime.process_time()\n\
+  \    N = int(round(tf / dt))\n    dim = N + 1\n    y = np.zeros((dim, 6))\n    y[0,\
+  \ :] = y_i\n\n    # Check if acc_function is a simple gravity model f(r) or full\
+  \ RHS f(t, y)\n    import inspect\n    sig = inspect.signature(acc_function)\n \
+  \   is_rhs = len(sig.parameters) == 2\n\n    for t_idx in range(N):\n        if\
+  \ is_rhs:\n            y_dot = acc_function(t_idx * dt, y[t_idx])\n        else:\n\
+  \            acc = acc_function(y[t_idx, 0:3])\n            y_dot = np.concatenate((y[t_idx,\
+  \ 3:6], acc))\n        \n        y[t_idx + 1, :] = y[t_idx, :] + y_dot * dt\n\n\
+  \    elapsed = pytime.process_time() - start\n    if time:\n        return y, elapsed\n\
+  \    return y\n"
+sf_MDT_EulerTimeEnd_NUM_0: 20855.127944427757
+sf_MDT_EulerTimeStep_NUM_0: 20.855127944427757
+sf_REG_EulerTimeTotal_NUM_0.5: 0.007955240000000252
+sf_REG_EulerTimeEff_NUM_0.5: 7.955240000000252e-05
+lf_REG_EulerPosIni_NUM_0:
 - -2577859.719109277
 - 7435265.51341482
 - -3.123549945845856
-lf_REG_IntVelIni_NUM_0:
+lf_REG_EulerVelIni_NUM_0:
 - -879.1973737043529
 - -301.5383850659152
 - 7060.035430389268
-lf_REG_IntPosEnd_NUM_1:
-- 2556675.821480677
-- -7454219.07721341
-- 68426.3572270836
-lf_REG_IntVelEnd_NUM_1:
-- 896.8023616770533
-- 246.13050454874852
-- -7049.505482706381
-ls_REG_OrbKep_PLOT_1:
+lf_REG_EulerPosEnd_NUM_2:
+- -3146380.9105876866
+- 5351001.344452064
+- 9266207.55061558
+lf_REG_EulerVelEnd_NUM_2:
+- 1259.7599723776636
+- -4952.624636760735
+- 3282.2723050629506
+ls_REG_OrbKepPlotFile_PLOT_1:
 - plots/a_e_i_SGP4.png
 - plots/u_RAAN_SGP4.png
-ls_REG_EulerKep_PLOT_1:
-- plots/a_e_i_INT.png
-- plots/u_RAAN_INT.png
-ls_MDT_ObjFun_SRC_0:
-- modules/objective.py
-ss_REG_ObjFun_CODE_1: "def make_objective(\n    y0_nominal: np.ndarray,\n    dt: float,\n\
-  \    tf: float,\n    rhs: Callable,\n    r_sgp4: np.ndarray,\n):\n    \"\"\"\n \
-  \   Returns an objective function f(x) -> CGPD (meters)\n\n    The returned function\
-  \ takes delta_y0 in [m, m/s] and returns\n    CGPD in meters.\n    \"\"\"\n    y0_nominal\
-  \ = np.asarray(y0_nominal, dtype=float)\n    r_sgp4 = np.asarray(r_sgp4, dtype=float)\n\
-  \n    def f(delta_y0: np.ndarray) -> float:\n        cgpd, _, _ = eval_objective_and_orbit(delta_y0,\
-  \ y0_nominal, dt, tf, rhs, r_sgp4)\n        return cgpd\n\n    return f\n\n\ndef\
-  \ eval_objective_and_orbit(\n    delta_y0: np.ndarray,\n    y0_nominal: np.ndarray,\n\
-  \    dt: float,\n    tf: float,\n    rhs: Callable,\n    r_sgp4: np.ndarray,\n):\n\
-  \    \"\"\"\n    Evaluate objective f(x) = CGPD between SGP4 orbit and integrated\
-  \ orbit\n    with perturbed initial state.\n\n    Parameters\n    ----------\n \
-  \   delta_y0 : (6,) array\n        Initial state perturbation [dx, dy, dz, dvx,\
-  \ dvy, dvz] with\n        positions in meters, velocities in m/s.\n    y0_nominal\
-  \ : (6,) array\n        Nominal initial state in km and km/s.\n    dt : float\n\
-  \        Integration time step [s].\n    tf : float\n        Final time [s].\n \
-  \   rhs : callable\n        RHS function for the ODE: rhs(t, y) -> dy/dt in km/s\
-  \ and km/s^2.\n    r_sgp4 : (N+1, 3) array\n        SGP4 positions in km, on the\
-  \ same time grid as the integrator.\n\n    Returns\n    -------\n    cgpd : float\n\
-  \        CGPD in meters.\n    y_iter : (N+1, 6) array\n        Integrated state\
-  \ (iterated orbit) in km and km/s.\n    t_step : float\n        CPU time for this\
-  \ integration [s].\n    \"\"\"\n    delta_y0 = np.asarray(delta_y0, dtype=float)\n\
-  \    if delta_y0.shape != (6,):\n        raise ValueError(f\"delta_y0 must be shape\
-  \ (6,), got {delta_y0.shape}\")\n\n    y0_nominal = np.asarray(y0_nominal, dtype=float)\n\
-  \    r_sgp4 = np.asarray(r_sgp4, dtype=float)\n\n    # Convert perturbations to\
-  \ km and km/s\n    delta_pos_km = delta_y0[:3]\n    delta_vel_kms = delta_y0[3:]\n\
-  \n    y0_pert = y0_nominal.copy()\n    y0_pert[:3] += delta_pos_km\n    y0_pert[3:]\
-  \ += delta_vel_kms\n\n    # Integrate orbit with perturbed initial state\n    t_start\
-  \ = pytime.perf_counter()\n    y_iter = integrator.RK4(y0_pert, dt, tf, rhs)\n \
-  \   t_step = pytime.perf_counter() - t_start\n\n    # Positions for CGPD\n    r_iter\
-  \ = y_iter[:, :3]\n    cgpd = cgpd_rms(r_sgp4, r_iter)\n\n    return cgpd, y_iter,\
-  \ t_step\n\n\ndef cgpd_rms(r_ref: np.ndarray, r_test: np.ndarray) -> float:\n  \
-  \  \"\"\"\n    Compute CGPD = RMS over time of the magnitude of the position difference.\n\
-  \n    Parameters\n    ----------\n    r_ref : (N, 3) array\n        Reference positions\
-  \ (SGP4) in km.\n    r_test : (N, 3) array\n        Test positions (integrated /\
-  \ optimised) in km.\n\n    Returns\n    -------\n    float\n        CGPD in meters.\n\
-  \    \"\"\"\n    r_ref = np.asarray(r_ref, dtype=float)\n    r_test = np.asarray(r_test,\
-  \ dtype=float)\n\n    if r_ref.shape != r_test.shape:\n        raise ValueError(f\"\
-  Shape mismatch in CGPD: ref {r_ref.shape}, test {r_test.shape}\")\n\n    diff =\
-  \ r_test - r_ref\n    gpd = np.linalg.norm(diff, axis=1)  # km\n    # cgpd_km =\
-  \ np.sqrt(np.mean(gpd**2))\n    n = gpd.size\n    cgpd_km = np.linalg.norm(gpd)\
-  \ / np.sqrt(n)\n    return float(cgpd_km)  # km\n"
-sf_REG_CGPDInt_NUM_1: 2426.66303720037
-ss_MDT_OptName_GEN_0: bfgs
-ls_MDT_Opt_SRC_0:
-- modules/optimisation.py
-ss_REG_Opt_CODE_6: "def bfgs_search(\n        y0_nominal: np.ndarray,\n        dt:\
-  \ float,\n        tf: float,\n        rhs,\n        r_sgp4: np.ndarray,\n      \
-  \  initial_delta: np.ndarray,\n        epsilon=1e-4,\n) -> OptResults:\n    # SCALING:\
-  \ 100m pos ~ 0.1 m/s vel\n    scale = np.array([0.1, 0.1, 0.1, 1e-4, 1e-4, 1e-4])\n\
-  \n    x_k = initial_delta / scale\n\n    n_vars = len(initial_delta)\n    I = np.eye(n_vars)\n\
-  \    H_k = np.eye(n_vars)\n\n    history_vals = []\n    history_grads = []\n   \
-  \ history_times = []\n    n_calls = 0\n    t_start = pytime.perf_counter()\n\n \
-  \   # Initial value\n    x_phys = x_k * scale\n    f_k, best_state, t_s = obj_mod.eval_objective_and_orbit(x_phys,\
-  \ y0_nominal, dt, tf, rhs, r_sgp4)\n    n_calls += 1\n\n    # Initial gradient\n\
-  \    g_k, t_g, c_g = compute_gradient_forward(x_k, f_k, epsilon, scale, y0_nominal,\
-  \ dt, tf, rhs, r_sgp4)\n    n_calls += c_g\n\n    # Saving initial state\n    history_vals.append(f_k)\n\
-  \    history_grads.append(np.linalg.norm(g_k))\n\n    # BFGS LOOP\n    max_iter\
-  \ = 50\n\n    for k in range(max_iter):\n        if np.linalg.norm(g_k) < 1e-6:\n\
-  \            break\n\n        p_k = -H_k @ g_k\n\n        if np.dot(p_k, g_k) >\
-  \ 0:\n            H_k = I\n            p_k = -g_k\n\n        # --- LINE SEARCH ---\n\
-  \        alpha = 1.0\n        c1 = 1e-4\n        rho = 0.2\n\n        accepted =\
-  \ False\n        x_next = None\n        f_next = None\n        state_next = None\n\
-  \n        for _ in range(15):\n            x_try = x_k + alpha * p_k\n         \
-  \   x_try_phys = x_try * scale\n\n            f_try, s_try, t_try = obj_mod.eval_objective_and_orbit(x_try_phys,\
-  \ y0_nominal, dt, tf, rhs, r_sgp4)\n            n_calls += 1\n            history_times.append(t_try)\n\
-  \n            # Armijo Condition (+ tolerance for numerical noise)\n           \
-  \ if f_try <= f_k + c1 * alpha * np.dot(g_k, p_k) + 1e-6:\n                accepted\
-  \ = True\n                x_next = x_try\n                f_next = f_try\n     \
-  \           state_next = s_try\n                break\n\n            alpha *= rho\n\
-  \n        if not accepted:\n            break\n\n        g_next, t_g, c_g = compute_gradient_forward(x_next,\
-  \ f_next, epsilon, scale, y0_nominal, dt, tf, rhs, r_sgp4)\n        n_calls += c_g\n\
-  \n        s_k = x_next - x_k\n        y_k = g_next - g_k\n\n        sy = np.dot(y_k,\
-  \ s_k)\n        if sy > 1e-10:\n            rho_k = 1.0 / sy\n            V = I\
-  \ - rho_k * np.outer(s_k, y_k)\n            H_k = V @ H_k @ V.T + rho_k * np.outer(s_k,\
-  \ s_k)\n\n        # Advance\n        x_k = x_next\n        f_k = f_next\n      \
-  \  g_k = g_next\n        best_state = state_next\n\n        history_vals.append(f_k)\n\
-  \        history_grads.append(np.linalg.norm(g_k))\n\n    total_time = pytime.perf_counter()\
-  \ - t_start\n\n    return OptResults(\n        best_delta_y0=x_k * scale,\n    \
-  \    best_value=float(f_k),\n        best_state=best_state,\n        history_values=history_vals,\n\
-  \        history_grads=history_grads,\n        history_times=history_times,\n  \
-  \      total_time=float(total_time),\n        n_calls=int(n_calls),\n    )\n"
-sf_REG_OptTotal_NUM_0.5: 1.5813144069998089
-sf_REG_OptEff_NUM_0.5: 0.006616378271965728
-lf_REG_OptPosIni_NUM_0:
-- -2578025.7854640023
-- 7435469.910118964
-- 673.2833023418451
-lf_REG_OptVelIni_NUM_0:
-- -878.9792863102177
-- -302.1264804048407
-- 7059.910942191541
-lf_REG_OptPosEnd_NUM_0:
-- 2556181.8582509076
-- -7454549.10580251
-- 72803.48236420378
-lf_REG_OptVelEnd_NUM_0:
-- 898.0926031584473
-- 242.3482223738376
-- -7049.397587500535
-sf_REG_CGPDOpt_NUM_1: 295.9120822774305
-ls_REG_Conv_PLOT_2:
-- plots/conv_cgpd.png
-- plots/conv_cgpd_grad.png
-ls_REG_OrbKepRes_PLOT_7:
-- plots/kep_res_a.png
-- plots/kep_res_e.png
-- plots/kep_res_i.png
-- plots/kep_res_RAAN.png
-- plots/kep_res_u.png
-ls_REG_MagDiff_PLOT_5:
-- plots/mag_pos_diff.png
-- plots/mag_vel_diff.png
-ss_REG_OrbObs_OIC_10: "\n- O1: The plot conv_cgpd_grad.png shows a rapid initial descent\
-  \ of the objective function, dropping from > 2 km \n      to \u2248 500 m within\
-  \ the first three iterations. The algorithm reaches the final plateau of \u2248\
-  \ 300 m more slowly, \n      and CGPD values are essentially constant after the\
-  \ 20th iteration, where the gradient norm remains well below 1e-2\n      and decreases\
-  \ to values lower than 1e-6.\n\n- O2: In kep_res_u.png, the difference in the argument\
-  \ of latitude (\u0394u) for the Integrated orbit shows a \n      monotonic increase\
-  \ from 0 to \u2248 0.035 deg. In contrast, the Optimized orbit residual remains\
-  \ bounded \n      within \xB1 0.005 deg and crosses zero twice, reaching its minimum\
-  \ magnitude approximately at the midpoint \n      of the simulation time.\n\n- O3:\
-  \ The plot mag_pos_diff.png shows that the Integrated position residual starts at\
-  \ 0 km and diverges \n      monotonically to about \u2212 0.4 km. The Optimized\
-  \ residual, instead, starts with a non-zero offset of \n      approximately + 0.2\
-  \ km and decreases to \u2248 \u2212 0.2 km, crossing zero again approximately at\
-  \ the\n      midpoint of the simulation time.\n\n- O4: The plots of the residuals\
-  \ of the orbital elements (a, e, i, RAAN) show that the residuals between \n   \
-  \   opt/SGP4 and int/SGP4 generally follow similar trends but are vertically offset\
-  \ relative to each other. \n      None of the optimized element residuals are ~zero,\
-  \ tend to zero or oscillate around zero.\n"
-ss_REG_OrbInt_OIC_15: "\n- I1: Based on O1, the convergence behavior reflects the\
-  \ geometry of the cost function. The sharp initial drop\n      indicates the algorithm\
-  \ starting on a steep slope where large gradient magnitudes drive rapid improvements.\
-  \ The \n      final plateau corresponds to the optimizer navigating the flatter\
-  \ region near the local minimum, where the \n      gradient magnitude decreases,\
-  \ requiring fine adjustments to satisfy the tolerance.\n\n- I2: Observations O2\
-  \ and O3 indicate that the optimizer minimizes the RMS by converting a unilateral\
-  \ divergence \n      (seen in the integrated orbit) into a bounded, symmetric error\
-  \ distribution. Since the numerical model lacks \n      perturbation terms present\
-  \ in SGP4 (e.g., drag), the optimizer compensates for the dynamic mismatch by \n\
-  \      selecting an initial state with a bias. This forces the satellite to start\
-  \ with a positive error, drift \n      through zero, and end with a negative error,\
-  \ mathematically yielding a lower RMS than a function diverging from zero.\n"
-ss_REG_OrbCon_OIC_23: "\nConclusion: When minimizing the RMS cumulative global position\
-  \ difference between two dynamical models with different force formulations, \n\
-  \            the optimal solution is a trajectory that centers the error distribution\
-  \ around zero (symmetric deviation) \n            rather than matching the initial\
-  \ conditions. Consequently, achieving a minimum RMS residual implies \n        \
-  \    accepting a systematic bias in the orbital elements to compensate for the physical\
-  \ model discrepancies \n            over the integration interval.\n"
-ls_AEX_OptTotalStep_PLOT_2:
-- plots/ae_opt_metrics_vs_dt.png
-- plots/ae_opt_metrics_vs_dt_additional.png
-ls_AEX_CGPDStep_PLOT_2:
-- plots/ae_cgpd_vs_dt.png
-ls_AEX_OptTotalCGPD_PLOT_2:
-- plots/ae_total_vs_cgpd.png
-- plots/ae_totalCPU_and_dt_vs_cgpd.png
-ss_AEX_OptStep_OIC_3: "\n- O1: The plot ae_cgpd_vs_dt.png shows that CGPD decreases\
-  \ rapidly as the time step is reduced from ~170 s to ~100 s \n      (dropping from\
-  \ >300 m to ~40 m). However, for dt < 80 s, the curve flattens into a plateau, maintaining\
-  \ a \n      nearly constant value between 20 m and 30 m regardless of further time\
-  \ step reductions.\n\n- O2: The plot ae_totalCPU_and_cgpd_vs_dt.png (Pareto Front)\
-  \ exhibits an asymptotic behavior: as the CGPD approaches the \n      floor, the\
-  \ Total CPU Time increases non-linearly. Specifically, reducing the time step below\
-  \ 80 s \n      increases the computational cost from ~5 s to >25 s, without yielding\
-  \ visible reductions in CGPD.\n\n- O3: In ae_opt_metrics_vs_dt_additional.png, the\
-  \ average time per call to the optimization function deviates from a strictly\n\
-  \      linear inverse relationship (proportional to 1/dt) and visually evolves as\
-  \ the plotted theoretical reference \n      curve dt^(-0.75).\n"
-ss_AEX_OptStep_OIC_5: "\n- I1: Based on O1 and O2, the plateau in the CGPD and the\
-  \ non-linear increase in total CPU time indicate that reducing\n      the integration\
-  \ step below a certain threshold yields diminishing returns. This behavior occurs\
-  \ because the \n      numerical truncation error (which depends on dt) becomes negligible\
-  \ compared to the physical model mismatch. \n      Consequently, further reducing\
-  \ dt increases the computational cost (as N increases) without improving the \n\
-  \      solution.\n\n- I2: Based on O3, the trend of Avg Time/Call is not linearly\
-  \ proportional to 1/dt (or N) due to the fixed \n      computational overhead of\
-  \ the Python interpreter and memory allocation. This constant overhead becomes \n\
-  \      significant relative to the integration time, masking the theoretical O(N)\
-  \ complexity of the optimization algorithm, \n      and resulting in the observed\
-  \ sub-linear scaling (~ N^0.75).\n"
-ss_AEX_OptStep_OIC_6: "\nConclusion: The total error is bounded by the fidelity of\
-  \ the dynamical model (physical accuracy floor), which cannot \n            be overcome\
-  \ by numerical refinement alone. Therefore, decreasing the time step (dt) is effective\
-  \ only \n            until the numerical truncation error drops below the physical\
-  \ model mismatch error. The optimal strategy \n            is not to minimize dt\
-  \ indefinitely, but to select the specific step size where numerical precision matches\
-  \ \n            the physical model's accuracy limit, achieving Pareto efficiency\
-  \ between computational cost and trajectory validity.\n"
-ss_CEX_Explain_GEN_10: "\n- Developed a TLE caching and retrieval system with fallback\
-  \ logic, local storage, NORAD/name matching, \nmalformed-response handling, and\
-  \ incremental caching.\n- The code is structured in files with functions for specific\
-  \ or general tasks.\n- Vectorised the CartoKep and KeptoCar transformation, eliminating\
-  \ loops.\n- Implemented a layered configuration system (DEFAULTS -> CONFIG.yaml\
-  \ -> CLI arguments) with the `pick()` \nselector.\n"
+ls_REG_EulerKepPlotFile_PLOT_1:
+- plots/a_e_i_Euler.png
+- plots/u_RAAN_Euler.png
+ls_MDT_GlobErr_SRC_0:
+- modules/errors.py
+ss_REG_GlobErr_CODE_2: "def compute_GPD(r_num: np.ndarray, r_sgp4: np.ndarray) ->\
+  \ np.ndarray:\n    \"\"\"\n    Computes the Global Position Difference (GPD) between\
+  \ two orbits.\n\n    Parameters:\n        r_num  : Nx3 array of positions from numerical\
+  \ integrator (Euler, RK4, etc.)\n        r_sgp4 : Nx3 array of positions from SGP4\
+  \ propagation\n\n    Returns:\n        gpd : Nx1 array of L2 norms of the position\
+  \ residual at each epoch\n    \"\"\"\n\n    if r_num.shape[0] != r_sgp4.shape[0]:\n\
+  \        raise RuntimeError(\"The two vectors have different rows!\\n\")\n    else:\n\
+  \        if r_num.shape[1] != r_sgp4.shape[1]:\n            raise RuntimeError(\"\
+  The two vectors have different columns!\\n\")\n\n    residual = r_num - r_sgp4 \
+  \ # Nx3\n    gpd = np.linalg.norm(residual, axis=1)  # Nx\n    return gpd\n"
+lf_MDT_GlobErrSteps_NUM_0.5:
+- 210.6578580245228
+- 66.20675537913574
+- 20.876003948376134
+- 6.597636173498183
+- 2.085721366579434
+ls_MDT_GlobErrPlot_SRC_0:
+- modules/plots.py
+ss_REG_GlobErrPlot_CODE_2: "def plot_log(x: np.ndarray, y: np.ndarray, xlabel: str,\
+  \ ylabel: str, label_list: list,\n             title=\"Generic title\", filename=\"\
+  Generic_filename.png\", scatter=False, x_inverted=False):\n    \"\"\"\n    Generic\
+  \ semi-log y plot for multiple datasets.\n\n    Args:\n        x: (#args, N) array\
+  \ (x-vector)\n        y: (#args, N) array (y-vector)\n        label_list: List of\
+  \ label strings\n        filename: Figure filename\n    \"\"\"\n    fig, ax = plt.subplots(figsize=(8,\
+  \ 7))  # Increased height\n    fig.subplots_adjust(top=0.80)  # Room for legend\n\
+  \n    # Handle cases where input might be 1D or 2D\n    if x.ndim == 1:\n      \
+  \  x = x.reshape(1, -1)\n    if y.ndim == 1:\n        y = y.reshape(1, -1)\n\n \
+  \   n_args = min(y.shape[0], y.shape[1])\n\n    # If shape is (N, args), transpose\
+  \ to (args, N)\n    if y.shape[0] > y.shape[1]:\n        x = x.T\n        y = y.T\n\
+  \        n_args = y.shape[0]\n\n    for k in range(n_args):\n        if scatter:\n\
+  \            if k & 1:\n                plt.plot(x[k, :], y[k, :], '-*', linewidth=1.2,\
+  \ label=label_list[k])\n            else:\n                plt.plot(x[k, :], y[k,\
+  \ :], '--*', linewidth=1.5, label=label_list[k])\n        else:\n            if\
+  \ k & 1:\n                plt.plot(x[k, :], y[k, :], '-', linewidth=1.2, label=label_list[k])\n\
+  \            else:\n                plt.plot(x[k, :], y[k, :], '--', linewidth=1.5,\
+  \ label=label_list[k])\n\n    plt.xlabel(xlabel, fontsize=LABEL_SIZE)\n    plt.ylabel(ylabel,\
+  \ fontsize=LABEL_SIZE)\n    plt.title(title, fontsize=TITLE_SIZE, y=1.20)\n\n  \
+  \  # Minor ticks between powers of 10\n    ax.set_yscale('log')\n    ax.set_xscale('log')\n\
+  \    # Configure major and minor log ticks\n    ax.yaxis.set_major_locator(LogLocator(base=10))\n\
+  \    ax.yaxis.set_minor_locator(LogLocator(base=10, subs=np.arange(2, 10)))\n\n\
+  \    # Draw major and minor grids\n    ax.grid(True, which='major', linewidth=0.8)\n\
+  \    ax.grid(True, which='minor', linestyle=':', linewidth=0.5)\n    plt.gca().yaxis.set_minor_locator(LogLocator(base=10.0,\
+  \ subs=np.arange(2, 10)))\n    plt.gca().xaxis.set_minor_locator(LogLocator(base=10.0,\
+  \ subs=np.arange(2, 10)))\n\n    # plt.grid(True, which='major', linewidth=0.8)\n\
+  \    # plt.grid(True, which='minor', linestyle=':', linewidth=0.5)\n    plt.minorticks_on()\n\
+  \    # ax.set_yscale('log')\n    if x_inverted:\n        plt.gca().invert_xaxis()\n\
+  \n    ax.tick_params(labelsize=TICK_SIZE)\n\n    # --- ADD ORBITAL PERIOD LABEL\
+  \ ---\n    handles, labels = ax.get_legend_handles_labels()\n    handles.append(Line2D([0],\
+  \ [0], color='none', label='1T = one orbital period'))\n    labels.append('1T =\
+  \ one orbital period')\n\n    # Legend ABOVE axis\n    ax.legend(handles, labels,\
+  \ loc='lower center', bbox_to_anchor=(0.5, 1.08),\n              ncol=2, fontsize=LEGEND_SIZE)\n\
+  \n    plt.tight_layout()\n    plt.savefig(filename, dpi=300, bbox_inches=\"tight\"\
+  )\n    plt.close()\n    return str(filename)\n\n\ndef plot_three_scales_mat(time,\n\
+  \                          data1, label1, ylabel1,\n                          data2,\
+  \ label2, ylabel2,\n                          data3, label3, ylabel3,\n        \
+  \                  title=\"Orbital Elements\", filename=\"plot_3_axes.png\"):\n\
+  \    # --- 1. Data Prep ---\n    time = np.asarray(time)\n    data1 = np.asarray(data1)\n\
+  \    data2 = np.asarray(data2)\n    data3 = np.asarray(data3)\n\n    if time.ndim\
+  \ != 2:\n        raise ValueError(\"time must be a 2D array (n_runs, N)\")\n\n \
+  \   n_runs = time.shape[0]\n\n    # --- 2. Mask Discontinuities ---\n    if \"Latitude\"\
+  \ in title or \"Argument\" in title:\n        for k in range(n_runs):\n        \
+  \    data1[k] = mask_discontinuity(data1[k])\n            data2[k] = mask_discontinuity(data2[k])\n\
+  \            data3[k] = mask_discontinuity(data3[k])\n\n    # --- 3. Figure Setup\
+  \ ---\n    max_time = np.nanmax(time)\n    orbital_lines = []\n\n    # Check for\
+  \ global 'period' variable, otherwise skip lines\n    if 'period' in globals() and\
+  \ period is not None and max_time > period:\n        nT = int(max_time // period)\n\
+  \        orbital_lines = np.arange(1, nT + 1) * period\n        fig, ax1 = plt.subplots(figsize=(10\
+  \ + nT, 9))\n    else:\n        fig, ax1 = plt.subplots(figsize=(10, 8))\n\n   \
+  \ fig.subplots_adjust(right=0.75, top=0.82, bottom=0.15)  # Adjusted margins\n\n\
+  \    # --- 4. Style: Colors & Widths ---\n    # Gradient: Light -> Dark\n    c_indices\
+  \ = np.linspace(0.4, 1.0, n_runs)\n    colors1 = [plt.cm.Blues(i) for i in c_indices]\n\
+  \    colors2 = [plt.cm.Greens(i) for i in c_indices]\n    colors3 = [plt.cm.Oranges(i)\
+  \ for i in c_indices]\n\n    # --- 5. DT Logic (Reverted to simple calculation)\
+  \ ---\n    # We calculate dt for all runs upfront to determine plotting order\n\
+  \    dt_values = time[:, 1] - time[:, 0]\n\n    # Sort: Largest dt (Thick/Light)\
+  \ -> Smallest dt (Thin/Dark)\n    # This ensures the high-precision (small dt) run\
+  \ is on top.\n    order = np.argsort(dt_values)[::-1]\n\n    # Linewidths: Thick\
+  \ -> Thin\n    line_widths = np.linspace(6.0, 1.5, n_runs)\n\n    # Lists for Legend\
+  \ (We will append in loop order)\n    legend_handles = []\n    legend_labels = []\n\
+  \n    # --- Axis 1 (Left, Blue) ---\n    ax1.set_xlabel(\"Time [s]\", fontsize=LABEL_SIZE)\n\
+  \    ax1.set_ylabel(ylabel1, color='tab:blue', fontsize=LABEL_SIZE)\n    ax1.tick_params(axis='y',\
+  \ labelcolor='tab:blue', labelsize=TICK_SIZE)\n    ax1.tick_params(axis='x', labelsize=TICK_SIZE)\n\
+  \    ax1.grid(True, linestyle=':', alpha=0.6)\n\n    ax1.yaxis.get_offset_text().set_horizontalalignment('right')\n\
+  \    ax1.yaxis.get_offset_text().set_position((-0.25, 1.0))\n    ax1.xaxis.set_minor_locator(mticker.AutoMinorLocator())\n\
+  \    ax1.yaxis.set_minor_locator(mticker.AutoMinorLocator())\n\n    for i, k in\
+  \ enumerate(order):\n        dt = dt_values[k]  # Use the simple dt value\n    \
+  \    lbl = f\"{label1}, dt = {dt:.3f} s\"\n\n        h, = ax1.plot(time[k], data1[k],\n\
+  \                      color=colors1[i],\n                      linewidth=line_widths[i],\n\
+  \                      label=lbl,\n                      zorder=10 + i)\n      \
+  \  legend_handles.append(h)\n        legend_labels.append(h.get_label())\n\n   \
+  \ # --- Axis 2 (Right, Green) ---\n    ax2 = ax1.twinx()\n    ax2.set_ylabel(ylabel2,\
+  \ color='tab:green', fontsize=LABEL_SIZE)\n    ax2.tick_params(axis='y', labelcolor='tab:green',\
+  \ labelsize=TICK_SIZE)\n    ax2.yaxis.get_offset_text().set_x(1.1)\n    ax2.yaxis.set_minor_locator(mticker.AutoMinorLocator())\n\
+  \n    for i, k in enumerate(order):\n        dt = dt_values[k]\n        lbl = f\"\
+  {label2}, dt = {dt:.3f} s\"\n\n        h, = ax2.plot(time[k], data2[k],\n      \
+  \                color=colors2[i],\n                      linewidth=line_widths[i],\n\
+  \                      linestyle='-',\n                      label=lbl,\n      \
+  \                zorder=10 + i)\n        legend_handles.append(h)\n        legend_labels.append(h.get_label())\n\
+  \n    # --- Axis 3 (Right Offset, Orange) ---\n    ax3 = ax1.twinx()\n    ax3.spines.right.set_position((\"\
+  axes\", 1.15))\n    ax3.set_ylabel(ylabel3, color='tab:orange', fontsize=LABEL_SIZE)\n\
+  \    ax3.tick_params(axis='y', labelcolor='tab:orange', labelsize=TICK_SIZE)\n \
+  \   ax3.set_frame_on(True)\n    ax3.patch.set_visible(False)\n    ax3.yaxis.get_offset_text().set_x(1.18)\n\
+  \n    ax3.yaxis.set_major_formatter(formatter)\n    ax3.yaxis.get_offset_text().set_x(1.18)\n\
+  \    ax3.yaxis.set_minor_locator(mticker.AutoMinorLocator())  # Added minor ticks\
+  \ for ax3\n\n    for i, k in enumerate(order):\n        dt = dt_values[k]\n    \
+  \    lbl = f\"{label3}, dt = {dt:.3f} s\"\n\n        h, = ax3.plot(time[k], data3[k],\n\
+  \                      color=colors3[i],\n                      linewidth=line_widths[i],\n\
+  \                      linestyle='--',\n                      label=lbl,\n     \
+  \                 zorder=10 + i)\n        legend_handles.append(h)\n        legend_labels.append(h.get_label())\n\
+  \n    # --- Orbital Period Lines ---\n    if 'period' in globals() and period is\
+  \ not None and len(orbital_lines) > 0:\n        for lx in orbital_lines:\n     \
+  \       ax1.axvline(lx, color='black', linestyle='-.', alpha=0.3, zorder=0)\n  \
+  \          ax1.text(lx, 1.05, f\"{int(lx / period)} T \u2248 {int(lx)} s\",\n  \
+  \                   transform=ax1.get_xaxis_transform(),\n                     ha='center',\
+  \ va='bottom', fontsize=12, color='gray')\n\n    # --- Legend ---\n    # --- ADD\
+  \ ORBITAL PERIOD LABEL ---\n    legend_handles.append(Line2D([0], [0], color='none',\
+  \ label='1T = one orbital period'))\n    legend_labels.append('1T = one orbital\
+  \ period')\n\n    # Place legend ABOVE the plot, UNDER the title\n    ax1.legend(legend_handles,\
+  \ legend_labels,\n               loc='lower center', bbox_to_anchor=(0.5, 1.08),\
+  \  # Adjusted higher to clear labels\n               fontsize=LEGEND_SIZE, ncol=3,\
+  \ frameon=True)\n\n    ax1.set_title(title, y=1.22, fontsize=TITLE_SIZE)  # Push\
+  \ title higher\n\n    try:\n        fig.savefig(filename, bbox_inches=\"tight\"\
+  )\n    except ValueError:\n        print(f\"Warning: Infinite data detected in {filename}.\
+  \ Saving without 'tight' layout.\")\n        fig.savefig(filename)\n\n    plt.close(fig)\n\
+  \    return str(filename)\n"
+lf_MDT_CumGlobErrSteps_NUM_0.5:
+- 20.876003948376134
+- 16.154243179262398
+- 12.510574651726309
+- 9.68654340196366
+- 7.496451453784241
+- 5.804377385034166
+- 4.493671179579349
+- 3.479333991396022
+- 2.6937649114476567
+- 2.085721366579434
+ls_MDT_CumGlobErrPlot_SRC_0:
+- modules/errors.py
+- modules/plots.py
+ss_REG_CumGlobErrPlot_CODE_2: "def plot_log(x: np.ndarray, y: np.ndarray, xlabel:\
+  \ str, ylabel: str, label_list: list,\n             title=\"Generic title\", filename=\"\
+  Generic_filename.png\", scatter=False, x_inverted=False):\n    \"\"\"\n    Generic\
+  \ semi-log y plot for multiple datasets.\n\n    Args:\n        x: (#args, N) array\
+  \ (x-vector)\n        y: (#args, N) array (y-vector)\n        label_list: List of\
+  \ label strings\n        filename: Figure filename\n    \"\"\"\n    fig, ax = plt.subplots(figsize=(8,\
+  \ 7))  # Increased height\n    fig.subplots_adjust(top=0.80)  # Room for legend\n\
+  \n    # Handle cases where input might be 1D or 2D\n    if x.ndim == 1:\n      \
+  \  x = x.reshape(1, -1)\n    if y.ndim == 1:\n        y = y.reshape(1, -1)\n\n \
+  \   n_args = min(y.shape[0], y.shape[1])\n\n    # If shape is (N, args), transpose\
+  \ to (args, N)\n    if y.shape[0] > y.shape[1]:\n        x = x.T\n        y = y.T\n\
+  \        n_args = y.shape[0]\n\n    for k in range(n_args):\n        if scatter:\n\
+  \            if k & 1:\n                plt.plot(x[k, :], y[k, :], '-*', linewidth=1.2,\
+  \ label=label_list[k])\n            else:\n                plt.plot(x[k, :], y[k,\
+  \ :], '--*', linewidth=1.5, label=label_list[k])\n        else:\n            if\
+  \ k & 1:\n                plt.plot(x[k, :], y[k, :], '-', linewidth=1.2, label=label_list[k])\n\
+  \            else:\n                plt.plot(x[k, :], y[k, :], '--', linewidth=1.5,\
+  \ label=label_list[k])\n\n    plt.xlabel(xlabel, fontsize=LABEL_SIZE)\n    plt.ylabel(ylabel,\
+  \ fontsize=LABEL_SIZE)\n    plt.title(title, fontsize=TITLE_SIZE, y=1.20)\n\n  \
+  \  # Minor ticks between powers of 10\n    ax.set_yscale('log')\n    ax.set_xscale('log')\n\
+  \    # Configure major and minor log ticks\n    ax.yaxis.set_major_locator(LogLocator(base=10))\n\
+  \    ax.yaxis.set_minor_locator(LogLocator(base=10, subs=np.arange(2, 10)))\n\n\
+  \    # Draw major and minor grids\n    ax.grid(True, which='major', linewidth=0.8)\n\
+  \    ax.grid(True, which='minor', linestyle=':', linewidth=0.5)\n    plt.gca().yaxis.set_minor_locator(LogLocator(base=10.0,\
+  \ subs=np.arange(2, 10)))\n    plt.gca().xaxis.set_minor_locator(LogLocator(base=10.0,\
+  \ subs=np.arange(2, 10)))\n\n    # plt.grid(True, which='major', linewidth=0.8)\n\
+  \    # plt.grid(True, which='minor', linestyle=':', linewidth=0.5)\n    plt.minorticks_on()\n\
+  \    # ax.set_yscale('log')\n    if x_inverted:\n        plt.gca().invert_xaxis()\n\
+  \n    ax.tick_params(labelsize=TICK_SIZE)\n\n    # --- ADD ORBITAL PERIOD LABEL\
+  \ ---\n    handles, labels = ax.get_legend_handles_labels()\n    handles.append(Line2D([0],\
+  \ [0], color='none', label='1T = one orbital period'))\n    labels.append('1T =\
+  \ one orbital period')\n\n    # Legend ABOVE axis\n    ax.legend(handles, labels,\
+  \ loc='lower center', bbox_to_anchor=(0.5, 1.08),\n              ncol=2, fontsize=LEGEND_SIZE)\n\
+  \n    plt.tight_layout()\n    plt.savefig(filename, dpi=300, bbox_inches=\"tight\"\
+  )\n    plt.close()\n    return str(filename)\n\n\ndef compute_CGPD(time: np.ndarray,\
+  \ GPD: np.ndarray) -> float | Any:\n    \"\"\"\n    Computes the Global Position\
+  \ Difference (GPD) between two orbits.\n\n    Parameters:\n        time  : 1xN array\
+  \ of time\n        GPD : 1xN array of errors\n\n    Returns:\n        cgpd : Nx1\
+  \ array of RMS norms of the GPD\n    \"\"\"\n\n    if time.size != GPD.size:\n \
+  \       raise RuntimeError(\"The two vectors have different rows!\\n\")\n\n    mask\
+  \ = ~np.isnan(GPD)\n    if not np.any(mask):\n        return np.nan\n\n    GPD_valid\
+  \ = GPD[mask]\n    n = GPD_valid.size\n    cgpd = np.linalg.norm(GPD_valid) / np.sqrt(n)\n\
+  \    return cgpd\n"
+ls_REG_CumGlobErr_PLOT_7:
+- plots/CGPD_SGP4_Euler.png
+ls_REG_GlobErr_PLOT_7:
+- plots/GPD_SGP4_Euler.png
+- plots/position_mag_Euler.png
+- plots/a_SGP4_Euler.png
+- plots/e_SGP4_Euler.png
+- plots/i_SGP4_Euler.png
+- plots/Om_SGP4_Euler.png
+- plots/u_SGP4_Euler.png
+- plots/E_h_pos.png
+ss_REG_OrbObs_OIC_10: "|\n- O1: Plot \"a_e_i_Euler.png\" shows that the semi-major\
+  \ axis linearly increases of approximately 500 km, the inclination \nremains constant,\
+  \ and the eccentricity exhibits near-periodic oscillations.\n- O2: Plot \"Om_SGP4_Euler.png\"\
+  \ shows that the RAAN from the Euler integrator is constant and the same for every\
+  \ dt used,\nwhereas SGP4 orbit's RAAN shows both a periodic behaviour and a negative\
+  \ drift.\n- O3: From the plot \"GPD_SGP4_Euler.png\", the GPD increases with time\
+  \ and, on the log\u2013log axes, each curve is close to a\nstraight line, with smaller\
+  \ GPD values for smaller time steps. \n- O4: The plot \"E_h_pos.png\" shows that\
+  \ both specific energy and specific angular momentum drift linearly during the \n\
+  three orbital periods represented: the specific energy becomes less negative (its\
+  \ magnitude decreases) and the specific\nangular momentum increases.\n"
+ss_REG_OrbInt_OIC_15: " |\n- I1: The drift of the semi-major axis observed in O1 is\
+  \ caused by the Euler integrator violating the conservation of orbital\nenergy,\
+  \ as seen in O4. Since E = -mu / (2a), the semi-major axis must increase as the\
+  \ specific mechanical energy \nbecomes less negative. This energy drift arises because\
+  \ the Euler integrator introduces local truncation errors that \naccumulate over\
+  \ time, so neither energy nor angular momentum remain constant, although they should\
+  \ be conserved in the two-body\n(point-mass) problem. \n\n- I2: From O3, the nearly\
+  \ straight line of CGPD versus time step on the log\u2013log plot indicates a power-law\
+  \ dependence\nof the form CGPD directly proportional to dt, consistent with the\
+  \ first-order global truncation error of the Euler \nmethod. Reducing the time step\
+  \ therefore decreases the cumulative position error approximately proportionally\
+  \ to dt. \n"
+ss_REG_OrbCon_OIC_23: "|\n- Integrating with a first-order method and using a point-mass\
+  \ gravitational model yields unreliable results, with \nrespect to those obtained\
+  \ with SGP4 propagation, for two main reasons: truncation error and model discrepancy.\
+  \ The\ntruncation error can be mitigated, but the linear reduction of CGPD with\
+  \ smaller time steps implies that an extremely small\ntime step (near machine precision)\
+  \ is required. On the other hand, the constant RAAN and inclination observed in\
+  \ the \nEuler integration prove that the point-mass model is fundamentally insufficient\
+  \ to reproduce the SGP4 dynamics, \nregardless of the integration precision.\n"
+ss_AEX_AltName_GEN_0.1: RK4
+ls_AEX_Alt_SRC_0.1:
+- modules/integrator.py
+ss_AEX_Alt_CODE_2: "def RK4(y_i: np.ndarray, dt: float, tf: float, acc_function: Callable[[np.ndarray],\
+  \ np.ndarray]):\n    N = int(round(tf / dt))\n    dim = N + 1\n    y = np.zeros((dim,\
+  \ 6))\n    y[0, :] = y_i\n\n    import inspect\n    sig = inspect.signature(acc_function)\n\
+  \    is_rhs = len(sig.parameters) == 2\n\n    for i in range(N):\n        t = i\
+  \ * dt\n        if is_rhs:\n            k1 = acc_function(t, y[i])\n           \
+  \ k2 = acc_function(t + 0.5*dt, y[i] + 0.5*dt*k1)\n            k3 = acc_function(t\
+  \ + 0.5*dt, y[i] + 0.5*dt*k2)\n            k4 = acc_function(t + dt, y[i] + dt*k3)\n\
+  \        else:\n            r, v = y[i, 0:3], y[i, 3:6]\n            k1 = np.concatenate((v,\
+  \ acc_function(r)))\n            \n            r2, v2 = r + 0.5*dt*k1[:3], v + 0.5*dt*k1[3:]\n\
+  \            k2 = np.concatenate((v2, acc_function(r2)))\n            \n       \
+  \     r3, v3 = r + 0.5*dt*k2[:3], v + 0.5*dt*k2[3:]\n            k3 = np.concatenate((v3,\
+  \ acc_function(r3)))\n            \n            r4, v4 = r + dt*k3[:3], v + dt*k3[3:]\n\
+  \            k4 = np.concatenate((v4, acc_function(r4)))\n\n        y[i + 1] = y[i]\
+  \ + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)\n\n    return y\n"
+sf_AEX_AltTimeEnd_NUM_0.1: 20855.127944427757
+sf_AEX_AltTimeStep_NUM_0.1: 20.855127944427757
+sf_AEX_AtlTimeTotal_NUM_0.5: 0.03449583053588867
+sf_AEX_AltTimeEff_NUM_0.5: 0.0003449583053588867
+lf_AEX_AltPosIni_NUM_0:
+- -2577859.719109277
+- 7435265.51341482
+- -3.123549945845856
+lf_AEX_AltVelIni_NUM_0:
+- -879.1973737043529
+- -301.5383850659152
+- 7060.035430389268
+lf_AEX_AltPosEnd_NUM_2:
+- -2557709.132727931
+- 7440481.163670473
+- -157595.66119129318
+lf_AEX_AltVelEnd_NUM_2:
+- -926.0828995085078
+- -165.72924148147038
+- 7058.596620137888
+lf_AEX_AltGlobErrSteps_NUM_0.1:
+- 210.6578580245228
+- 2.085721366579434
+ls_AEX_AltGlobErr_PLOT_2.2:
+- plots/GPD_RK4_Euler.png
+- plots/GPD_RK4_SGP4.png
+- plots/a_RK4_Euler.png
+- plots/e_RK4_Euler.png
+- plots/i_RK4_Euler.png
+- plots/u_RK4_Euler.png
+- plots/Om_RK4_Euler.png
+lf_AEX_AltCumGlobErrSteps_NUM_0.1:
+- 210.6578580245228
+- 125.63330087004672
+- 75.28927055750093
+- 45.043472882133386
+- 26.9794669397513
+- 16.154243179262398
+- 9.68654340196366
+- 5.804377385034166
+- 3.479333991396022
+- 2.085721366579434
+ls_AEX_AltCumGlobErr_PLOT_2.2:
+- plots/CGPD_RK4_SGP4.png
+- plots/CGPD_RK4_Euler.png
+ss_AEX_AltObs_OIC_1.5: "|\n- O1: Plot \"GPD_RK4_Euler.png\" shows that the GPD between\
+  \ RK4 and Euler grows to approximately 10^4 km for both the used \ntime steps, and\
+  \ it is lower for a smaller dt. In \"GPD_RK4_SGP4.png\", the GPD between RK4 and\
+  \ SGP4 reaches ~100 km and is \nessentially identical for both step sizes, although\
+  \ for the first ~20 s the GPD for dt = 20.876 s is bigger.\n- O2: In \"Om_RK4_Euler.png\"\
+  \ and \"i_RK4_Euler.png\", the RAAN and inclination differences stay at ~10^(-13).\
+  \ \nIn \"e_RK4_Euler.png\", RK4 eccentricity remains effectively constant, with\
+  \ oscillations of amplitude ~4e-9 for the \ngreatest dt used, whereas Euler orbit's\
+  \ eccentricity oscillates with a maximum amplitude of approximately 0.05 for the\n\
+  greatest time step.\n- O3: \"CGPD_RK4_Euler.png\" shows that the CGPD decreases\
+  \ with decreasing dt: values span from more than 10^4 km  down to \nless than ~4*10\xB3\
+  \ km. \"CGPD_RK4_SGP4.png\" instead plateaus near ~50 km for small dts, while the\
+  \ lowest value is obtained\nfor the largest dt, at ~42 m.\n"
+ss_AEX_AltInt_OIC_2.5: "|\n- I1: The strong growth of GPD in Euler cases originates\
+  \ from first-order truncation errors accumulating in the state, while\n RK4 remains\
+  \ consistent across the considered dts; the negligible differences in RAAN and inclination\
+  \ confirm that, \n using a point-mass gravity model without any perturbation, these\
+  \ two keplerian elements are not affected by the \n integration method chosen. By\
+  \ contrary, the differences in eccentricity between Euler and RK4 orbit show that\
+  \ the Euler\n method introduces a numerical oscillation and RK4 doesn't.\n- I2:\
+  \ The CGPD trends reflect convergence of RK4 to the two-body solution with a point-mass\
+  \ model and no perturbations. Decreasing dt \nreduces RK4\u2019s own numerical noise,\
+  \ but cannot diminish the model discrepancy with SGP4. The small dip at the coarsest\
+  \ \ndt is a local numerical artefact rather than an indicator of improved physical\
+  \ accuracy.\n"
+ss_AEX_AltCon_OIC_4: "|\n- To reduce the truncation error, it is more effective to\
+  \ increase the order of the integration model than to decrease \nthe integration\
+  \ time. For this reason, an explicit first-order method is reliable only for time\
+  \ steps close to machine \nprecision, whereas for a higher-order method, a much\
+  \ larger time step is sufficient to achieve a convergent solution.\n"
+ss_CEX_Explain_GEN_10: "|\n- Developed a robust TLE caching and retrieval system with\
+  \ fallback logic, local storage, NORAD/name matching, \nmalformed-response handling,\
+  \ and incremental caching.\n- Vectorised the CartoKep and KeptoCar transformation,\
+  \ eliminating loops.\n- Built a reusable plotting framework including matrix-based\
+  \ plotting with gradient colours, and generic plotting interfaces.\n- Adopted dataclasses\
+  \ for all iteration and storage structures, producing clean, typed, self-documenting\
+  \ data.\n- Implemented a layered configuration system (DEFAULTS -> CONFIG.yaml ->\
+  \ CLI arguments) with the `pick()` \nselector.\n"
 ss_MDT_AI_GEN_0: "|\nI used AI to get help with the syntax, the libraries and the\
   \ yaml file generation. Also, \nplotting functions and secondary functions have\
   \ been refined by AI for better clarity.\n"
-sf_REG_WORKLOAD_GEN_0: 27
-ss_REG_FEEDBACK_GEN_0: "|\nInteresting assignment. \n"
-ls_MDT_AltPlot_SRC_0:
-- modules/orbital_plots.py
-ss_REG_AltPlot_CODE_0: "def plot_convergence_dual(history_cgpd, history_grad, out_dir,\
-  \ filename):\n    out_dir = Path(out_dir)\n    filename = out_dir / filename\n\n\
-  \    iters = np.arange(1, len(history_cgpd) + 1)\n\n    fig, ax1 = plt.subplots(figsize=(10,\
-  \ 6))\n\n    color1 = 'tab:blue'\n    l1, = ax1.plot(iters, history_cgpd, 'o-',\
-  \ color=color1, label='CGPD [km]', linewidth=2)\n    ax1.set_xlabel('Iteration',\
-  \ fontsize=LABEL_SIZE)\n    ax1.set_ylabel('Cost Function (CGPD) [km]', color=color1,\
-  \ fontsize=LABEL_SIZE)\n    ax1.tick_params(axis='y', labelcolor=color1, labelsize=TICK_SIZE)\n\
-  \    ax1.tick_params(axis='x', labelsize=TICK_SIZE)\n    ax1.set_yscale('log')\n\
-  \    ax1.grid(True, linestyle=':', alpha=0.6)\n\n    ax2 = ax1.twinx()\n    color2\
-  \ = 'tab:red'\n    l2, = ax2.plot(iters, history_grad, 's--', color=color2, label='||Gradient||',\
-  \ linewidth=2)\n    ax2.set_ylabel('Gradient Norm (Scaled)', color=color2, fontsize=LABEL_SIZE)\n\
-  \    ax2.tick_params(axis='y', labelcolor=color2, labelsize=TICK_SIZE)\n    ax2.set_yscale('log')\n\
-  \n    ax1.set_title(\"Optimization Convergence: CGPD & Gradient\", fontsize=TITLE_SIZE)\n\
-  \n    lines = [l1, l2]\n    labels = [l.get_label() for l in lines]\n    ax1.legend(lines,\
-  \ labels, loc='upper right', fontsize=LEGEND_SIZE)\n\n    fig.tight_layout()\n \
-  \   fig.savefig(filename, dpi=300)\n    plt.close(fig)\n    return str(filename)\n\
-  \n\ndef plot_ae_opt_metrics_with_theory(dt_vals, total_times, n_calls, avg_times,\
-  \ out_dir, filename):\n    out_dir = Path(out_dir)\n    filename = out_dir / filename\n\
-  \n    fig, ax1 = plt.subplots(figsize=(10, 6))\n\n    # 1. Total Time (Left Axis)\n\
-  \    color1 = 'tab:blue'\n    l1, = ax1.plot(dt_vals, total_times, 'o-', color=color1,\
-  \ label='Total CPU Time [s]', linewidth=2)\n    ax1.set_xlabel('Integration step\
-  \ dt [s]', fontsize=LABEL_SIZE)\n    ax1.set_ylabel('Total Time [s]', color=color1,\
-  \ fontsize=LABEL_SIZE)\n    ax1.tick_params(axis='y', labelcolor=color1, labelsize=TICK_SIZE)\n\
-  \    ax1.tick_params(axis='x', labelsize=TICK_SIZE)\n    ax1.grid(True, linestyle=':',\
-  \ alpha=0.6)\n\n    # 2. N Calls (Right Axis 1)\n    ax2 = ax1.twinx()\n    color2\
-  \ = 'tab:orange'\n    l2, = ax2.plot(dt_vals, n_calls, 's--', color=color2, label='#\
-  \ Func Calls', linewidth=2)\n    ax2.set_ylabel('# Calls', color=color2, fontsize=LABEL_SIZE)\n\
-  \    ax2.tick_params(axis='y', labelcolor=color2, labelsize=TICK_SIZE)\n\n    #\
-  \ 3. Avg Time + Theory (Right Axis 2 - Offset)\n    ax3 = ax1.twinx()\n    ax3.spines[\"\
-  right\"].set_position((\"axes\", 1.15))\n    color3 = 'tab:green'\n\n    l3, = ax3.plot(dt_vals,\
-  \ avg_times, '^:', color=color3, label='Avg Time/Call [s]', linewidth=2)\n\n\n \
-  \   theory_shape = dt_vals ** (-0.75)\n    # scale_factor = np.mean(avg_times) /\
-  \ np.mean(theory_shape)\n    # theory_vals = scale_factor * theory_shape\n    theory_vals\
-  \ = theory_shape\n    l4, = ax3.plot(dt_vals, theory_vals, color='black', linestyle='--',\
-  \ alpha=0.6,\n                   linewidth=2, label=r' $dt^{-0.75} \\ [s^{-\\frac{3}{4}}]$')\n\
-  \n    ax3.set_ylabel('Avg Time [s]', color=color3, fontsize=LABEL_SIZE)\n    ax3.tick_params(axis='y',\
-  \ labelcolor=color3, labelsize=TICK_SIZE)\n\n    # Legend\n    lines = [l1, l2,\
-  \ l3, l4]\n    labels = [l.get_label() for l in lines]\n    ax1.legend(lines, labels,\
-  \ loc='upper center', bbox_to_anchor=(0.5, 1.18), ncol=2, fontsize=LEGEND_SIZE)\n\
-  \n    fig.tight_layout()\n    fig.savefig(filename, dpi=300, bbox_inches='tight')\n\
-  \    plt.close(fig)\n    return str(filename)\n\n\ndef plot_ae_total_vs_cgpd_additional(total_times,\
-  \ cgpd_vals, dt_vals, out_dir, filename):\n    \"\"\"\n    Plots Total CPU Time\
-  \ (Left Y) and Time Step dt (Right Y) as a function of CGPD (X).\n    Visualizes\
-  \ the cost of accuracy.\n    \"\"\"\n    out_dir = Path(out_dir)\n    filename =\
-  \ out_dir / filename\n\n    fig, ax1 = plt.subplots(figsize=(10, 6))\n\n    # Asse\
-  \ Y1: Total CPU Time (Viola)\n    color1 = 'tab:purple'\n    l1, = ax1.plot(cgpd_vals,\
-  \ total_times, 'o-', color=color1, label='Total CPU Time', linewidth=2)\n    ax1.set_xlabel(\"\
-  CGPD [km]\", fontsize=LABEL_SIZE)\n    ax1.set_ylabel(\"Total CPU Time [s]\", color=color1,\
-  \ fontsize=LABEL_SIZE)\n    ax1.tick_params(axis='y', labelcolor=color1, labelsize=TICK_SIZE)\n\
-  \    ax1.tick_params(axis='x', labelsize=TICK_SIZE)\n    ax1.grid(True, linestyle=':',\
-  \ alpha=0.6)\n\n\n\n    ax2 = ax1.twinx()\n    color2 = 'tab:brown'\n    l2, = ax2.plot(cgpd_vals,\
-  \ dt_vals, 's--', color=color2, label='Time Step (dt)', linewidth=2, alpha=0.6)\n\
-  \    ax2.set_ylabel(\"Time Step dt [s]\", color=color2, fontsize=LABEL_SIZE)\n \
-  \   ax2.tick_params(axis='y', labelcolor=color2, labelsize=TICK_SIZE)\n\n    ax1.set_title(\"\
-  Pareto Front: Computational Cost & Step Size vs Accuracy\", fontsize=TITLE_SIZE)\n\
-  \n    lines = [l1, l2]\n    labels = [l.get_label() for l in lines]\n    ax1.legend(lines,\
-  \ labels, loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=2, fontsize=LEGEND_SIZE)\n\
-  \n    fig.tight_layout()\n    fig.savefig(filename, dpi=300)\n    plt.close(fig)\n\
-  \    return str(filename)\n"
+sf_REG_WORKLOAD_GEN_0: 10
+ss_REG_FEEDBACK_GEN_0: '|
+
+  No feedback
+
+  '
