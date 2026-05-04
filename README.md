@@ -79,8 +79,8 @@ Each project directory contains its own configuration and entry-point scripts:
 ##  Author
 
 **Giovanni Pieroni***
-*Space Engineer / Scientific Software Developer*
+
 
 ---
 *Projects developed as part of advanced Astrodynamics and Interplanetary Mission Design curricula at TU Delft.*
-* Interplanetary transfer to Asteroid 1991VH was made in collaboration with Alessandro Ponti 
+\* Interplanetary transfer to Asteroid 1991VH was made in collaboration with Alessandro Ponti 
